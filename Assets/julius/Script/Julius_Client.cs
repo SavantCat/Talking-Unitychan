@@ -43,7 +43,8 @@ public class Julius_Client : MonoBehaviour {
 	private			float			wait_time 		= 1;
 	
 	//XML処理用
-	private 		string 			tmp 			= "";
+	public			string			regular			= "WORD=\"([^。\"]+)\"";
+	private 		string 			tmp 			= string.Empty;
 	public 	 		string 			words 			= "HogeHoge";
 	private  		byte[] 			data 			= new byte[10000];
 	private 		Match 			sampling;
@@ -136,14 +137,13 @@ public class Julius_Client : MonoBehaviour {
 			//ストリームの受信
 			net.Read(data, 0, data.Length);
 			stream = System.Text.Encoding.Default.GetString(data);
-			Debug.Log (stream);
+			//Debug.Log (stream);
 			
-			Debug.Log ("tmp_s : "+words);
-
-			words = "";
-
+			//Debug.Log ("tmp_s : "+words)
+			tmp = string.Empty;
 			//XMLデータから文字列の抽出
-			words = XML_search(stream);
+			tmp = XML_search(stream);
+
 		}
 	}
 	
@@ -158,22 +158,29 @@ public class Julius_Client : MonoBehaviour {
 	
 	/*ストリーム情報から正規表現を利用して文字列を抽出する*/
 	private string XML_search(string stream){
+		string tmp = string.Empty;
+
 		//正規表現
-		xml_data = new Regex("WORD=\"([^。\"]+)\"");
+		xml_data = new Regex(regular);
 		//初回抽出(NextMatch()を使うため)
 		sampling = xml_data.Match(stream);
 		while(sampling.Success){//最後まで抽出
 			//結合処理
 			for(int i = 1;i<sampling.Groups.Count;i++){//なぜかi = 1にしたらうまく行った
-				words += sampling.Groups[i].Value;
+				tmp += sampling.Groups[i].Value;
 			}
 			//順次抽出していく
 			sampling = sampling.NextMatch();
 		}
 		//最終的に結合した文字列を返す
-		return words;
+		return tmp;
 	}
 	//--------------------------------------------------------------
+
+	private void timer_reset(){
+		timer = 0f;
+	}
+
 
 	//--------------------------Main--------------------------------
 	// Use this for initialization
@@ -192,7 +199,28 @@ public class Julius_Client : MonoBehaviour {
 		//結果を常に受け取る
 		if (run) {
 			if (connect) {
-				Result = words;
+				/*
+				//wordsの利用時間
+				if(tmp == words){
+					timer += Time.deltaTime;
+					if(timer >= keep_time){
+						//初期化
+						words = "";
+					}
+				}else{
+					tmp = words;
+					timer_reset();
+				}
+				*/
+				//Result = words;
+
+				Debug.Log ("tmp : "+tmp+" "+"word : "+words+" Result : "+Result);
+				if(tmp != words){
+					words  = tmp;
+					Result = tmp;
+				}else{
+					Result = string.Empty;
+				}
 			} else {
 				Debug.Log ("Wait for response...");
 			}

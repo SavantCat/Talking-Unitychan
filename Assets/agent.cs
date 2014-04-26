@@ -22,10 +22,13 @@ public class agent : MonoBehaviour {
 		if(clips != null && command != null){
 			for(int i=0;i<command.Length;i++){
 				if(command[i] == julius.Result){
-					animator.SetTrigger(triggers[i]);
+					animator.SetBool(triggers[i],true);
 					voice.clip = clips[i];
 					voice.Play();
+				}else{
+					animator.SetBool(triggers[i],false);
 				}
+				//voice.clip = null;
 			}
 		}
 	}
